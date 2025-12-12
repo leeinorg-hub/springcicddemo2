@@ -78,7 +78,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ secrets.DOCKER_USERNAME }}/cicdtest2
+          images: ${{ secrets.DOCKERHUB_USERNAME }}/cicdtest2
           tags: |
             type=raw,value=latest
             type=sha,prefix={{branch}}-
