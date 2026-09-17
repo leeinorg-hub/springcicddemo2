@@ -15,7 +15,7 @@ public class HealthController {
     @GetMapping("/hello")
     public Map<String, String> hello() {
         Map<String, String> response = new HashMap<>();
-        response.put("message", "Hello from CI/CD Demo!");
+        response.put("message", "Hello from CI/CD Demo@!@");
         response.put("timestamp", LocalDateTime.now().toString());
         return response;
     }
