@@ -95,3 +95,34 @@ jobs:
 
       - name: Image digest
         run: echo "Image pushed with digest ${{ steps.meta.outputs.digest }}"
+
+  deploy:
+    needs: docker-build-and-push
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Deploy to EC2 via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            echo "Logging in to Docker Hub..."
+            echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
+            echo "Pulling latest Docker image..."
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/cicdtest2:latest
+
+            echo "Stopping and removing existing container if running..."
+            docker stop cicd-app || true
+            docker rm cicd-app || true
+
+            echo "Running new Docker container..."
+            docker run -d --name cicd-app -p 7777:7777 ${{ secrets.DOCKERHUB_USERNAME }}/cicdtest2:latest
+
+            echo "Cleaning up unused dangling images..."
+            docker image prune -f
+
+            echo "Deployment completed successfully!"
